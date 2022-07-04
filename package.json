@@ -1,0 +1,16 @@
+{
+  "name": "youtube-toolbox",
+  "version": "1.0.0",
+  "description": "Croc's toolbox",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "db:local": "yarn --cwd packages/backend db:local",
+    "ssl:local": "npx local-ssl-proxy --source 9000 --target 8080",
+    "www:build": "cd apps/www; node build.mjs; cd ../.."
+  }
+}

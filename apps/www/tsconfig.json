@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": "src/.",
+    "paths": {
+      "@youtube-toolbox/models": ["../../packages/models/src/index"],
+      "@youtube-toolbox/models/*": ["../../packages/models/src/*"],
+      "@youtube-toolbox/backend": ["../../packages/backend/src/index"],
+      "@youtube-toolbox/backend/*": ["../../packages/backend/src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules"],
+  "references": [
+    {
+      "path": "../../packages/models"
+    },
+    {
+      "path": "../../packages/backend"
+    }
+  ]
+}

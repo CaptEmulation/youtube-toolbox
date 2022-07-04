@@ -1,0 +1,44 @@
+{
+  "name": "@youtube-toolbox/functions",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "John Dean <john.holmes.dean@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "yarn websocket-connect:build && yarn websocket-disconnect:build && yarn websocket-message:build",
+    "websocket-connect:build": "esbuild src/lambda/websocket-connect.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/websocket-connect/index.mjs",
+    "websocket-disconnect:build": "esbuild src/lambda/websocket-disconnect.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/websocket-disconnect/index.mjs",
+    "websocket-message:build": "esbuild src/lambda/websocket-message.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/websocket-message/index.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.95",
+    "@types/jest": "^27.4.1",
+    "@types/sharp": "^0.30.2",
+    "@types/uuid": "^8.3.4",
+    "esbuild": "^0.14.38",
+    "eslint": "^8.18.0",
+    "jest": "^27.5.1",
+    "prettier": "^2.7.1",
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.121.0",
+    "@aws-sdk/lib-dynamodb": "^3.121.0",
+    "@next-auth/dynamodb-adapter": "^1.0.3",
+    "@youtube-toolbox/backend": "1.0.0",
+    "@youtube-toolbox/models": "1.0.0",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1166.0",
+    "bunyan": "^1.8.15",
+    "cookie": "^0.5.0",
+    "google-auth-library": "^8.1.0",
+    "googleapis": "^104.0.0",
+    "http-proxy": "^1.18.1",
+    "lambda-logger-node": "4.0.0-7",
+    "uuid": "^8.3.2",
+    "ws": "^8.8.0"
+  },
+  "packageManager": "yarn@3.2.0"
+}

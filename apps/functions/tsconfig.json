@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "incremental": true,
+    "module": "NodeNext",
+    "rootDir": "./src" /* Specify the root folder within your source files. */,
+    "outDir": "dist" /* Specify an output folder for all emitted files. */,
+    "paths": {
+      "@youtube-toolbox/models": ["../../packages/models/src/index"],
+      "@youtube-toolbox/models/*": ["../../packages/models/src/*"],
+      "@youtube-toolbox/backend": ["../../packages/backend/src/index"],
+      "@youtube-toolbox/backend/*": ["../../packages/backend/src/*"],
+      "@/utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/node_modules", "**/.*/", "dist", "build"],
+  "references": [
+    {
+      "path": "../../packages/models"
+    },
+    {
+      "path": "../../packages/backend"
+    }
+  ]
+}

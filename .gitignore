@@ -1,0 +1,8 @@
+node_modules
+cdk.out
+.build
+.env
+dist
+tsconfig.tsbuildinfo
+.layers
+yarn-error.log

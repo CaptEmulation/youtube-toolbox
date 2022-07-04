@@ -1,0 +1,17 @@
+{
+  "name": "@youtube-toolbox/models",
+  "version": "1.0.0",
+  "description": "Common models",
+  "sideEffects": false,
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  },
+  "packageManager": "yarn@3.2.0"
+}

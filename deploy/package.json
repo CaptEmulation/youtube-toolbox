@@ -1,0 +1,25 @@
+{
+  "name": "next-formclank",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:mooneleaf/next-formclank.git",
+  "author": "John Dean <john.holmes.dean@gmail.com>",
+  "scripts": {
+    "build": "tsc",
+    "cdk": " node --experimental-json-modules ./node_modules/.bin/cdk",
+    "deploy": "node --experimental-json-modules ./node_modules/.bin/cdk deploy"
+  },
+  "devDependencies": {
+    "@types/node": "^16",
+    "aws-cdk-lib": "^2.29.1",
+    "cdk": "^2.29.1",
+    "source-map-support": "^0.5.21"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@aws-cdk/aws-apigatewayv2-alpha": "^2.30.0-alpha.0",
+    "@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.30.0-alpha.0",
+    "aws-cdk": "^2.30.0",
+    "constructs": "^10.1.42"
+  }
+}
