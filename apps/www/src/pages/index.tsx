@@ -25,7 +25,8 @@ const LoginButton: FC = () => {
 };
 
 const ConnectButton: FC = () => {
-  const { isConnected, isConnecting, error, open } = useSocket();
+  const { isConnected, isConnecting, isAuthenticated, error, open } =
+    useSocket();
   return (
     <>
       {isConnected ? "Connected" : "Not connected"}
@@ -33,6 +34,15 @@ const ConnectButton: FC = () => {
         <>
           <br />
           Connecting
+        </>
+      ) : (
+        ""
+      )}
+      {isAuthenticated ? (
+        <>
+          {" "}
+          <br />
+          Authenticated
         </>
       ) : (
         ""

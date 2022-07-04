@@ -1,5 +1,5 @@
 import type { Credentials } from "google-auth-library";
-
+import type { youtube_v3 } from "googleapis";
 export interface ISocketConnection {
   connectionId: string;
   messageEndpoint: string;
@@ -145,14 +145,29 @@ export interface ISocketMessage<Action extends string> {
 
 export type TInitAction = ISocketMessage<"openLivechat">;
 export type TPingAction = ISocketMessage<"ping">;
+export type TRequestMoreMessages = ISocketMessagePayload<
+  "requestMoreMessages",
+  {
+    livechatId: string;
+    nextPage?: string;
+  }
+>;
+export type TStopAction = ISocketMessage<"stop">;
+export type TStartAction = ISocketMessage<"start">;
 
-export type TAllIncomingActions = TInitAction | TPingAction;
+export type TAllIncomingActions =
+  | TInitAction
+  | TPingAction
+  | TRequestMoreMessages
+  | TStopAction
+  | TStartAction;
 
 export type TOkAction = ISocketMessage<"ok">;
 export type TConnectedAction = ISocketMessage<"connected">;
-export type TLivechatOpenAction = ISocketMessagePayload<
-  "livechatOpen",
-  { livechatId: string }
+export type TLivechatOpenAction = ISocketMessagePayload<"livechatOpen", string>;
+export type TLivechatNewMessagesAction = ISocketMessagePayload<
+  "livechatNewMessages",
+  youtube_v3.Schema$LiveChatMessage[]
 >;
 export type TErrorAction = ISocketMessagePayload<"error", { message: string }>;
 export type TPongAction = ISocketMessage<"pong">;
@@ -161,7 +176,9 @@ export type TAllOutgoingActions =
   | TOkAction
   | TConnectedAction
   | TLivechatOpenAction
+  | TLivechatNewMessagesAction
   | TErrorAction
+  | TStopAction
   | TPongAction;
 
 export type TAllActions = TAllIncomingActions | TAllOutgoingActions;

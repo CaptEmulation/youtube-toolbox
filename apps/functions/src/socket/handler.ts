@@ -6,7 +6,12 @@ import {
   TAllOutgoingActions,
 } from "@youtube-toolbox/models";
 import { ApiGatewayManagementApi } from "aws-sdk";
-import { openLiveChat } from "./commands/openLiveChat";
+import { openLiveChat, requestMoreMessages } from "./commands/openLiveChat";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger({
+  name: "youtube-toolbox/socket/handler",
+});
 
 export async function sendAction(
   apigwManagementApi: ApiGatewayManagementApi,
@@ -28,7 +33,19 @@ export async function handleIncomingMessage(
 ) {
   switch (action.type) {
     case "openLivechat": {
+      logger.debug("Opening livechat");
       await openLiveChat(socketConnection, send);
+      break;
+    }
+    case "requestMoreMessages": {
+      const livechatId = action.payload.livechatId;
+      const nextPage = action.payload.nextPage;
+      await requestMoreMessages({
+        livechatId,
+        nextPage,
+        credentials: socketConnection.googleCredentials(),
+        send,
+      });
       break;
     }
     case "ping": {

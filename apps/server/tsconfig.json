@@ -5,6 +5,7 @@
     "rootDir": "./src" /* Specify the root folder within your source files. */,
     "outDir": "dist" /* Specify an output folder for all emitted files. */,
     "paths": {
+      "@youtube-toolbox/backend/": ["../../packages/backend/sc/index"],
       "@youtube-toolbox/models": ["../../packages/models/src/index"],
       "@youtube-toolbox/models/*": ["../../packages/models/src/*"],
       "@youtube-toolbox/functions": ["../../apps/functions/src/index"],

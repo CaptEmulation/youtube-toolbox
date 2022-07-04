@@ -1,7 +1,7 @@
 import { SocketConnectionsDao, getDb } from "@youtube-toolbox/backend";
-import bunyan from "bunyan";
+import { createLogger } from "../utils/logger";
 
-const logger = bunyan.createLogger({
+const logger = createLogger({
   name: "youtube-toolbox/socket/disconnect",
 });
 

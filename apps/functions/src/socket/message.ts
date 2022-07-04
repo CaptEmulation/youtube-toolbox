@@ -14,10 +14,10 @@ import { handleIncomingMessage, sendAction } from "../socket/handler";
 import {
   SocketConnectionModel,
   TAllOutgoingActions,
-} from "@youtube-toolbox/models/src/socketConnection";
-import bunyan from "bunyan";
+} from "@youtube-toolbox/models";
+import { createLogger } from "../utils/logger";
 
-const logger = bunyan.createLogger({
+const logger = createLogger({
   name: "youtube-toolbox/socket/message",
 });
 
@@ -30,6 +30,7 @@ export async function message(
   body: string,
   send: (data: TAllOutgoingActions) => Promise<void>
 ): Promise<APIGatewayProxyResult> {
+  logger.info("Received action", body);
   let socketConnection: ISocketConnection;
   try {
     const socketConnectionResponse =
@@ -60,6 +61,7 @@ export async function message(
       };
     }
     const action: TAllIncomingActions = JSON.parse(bodyStr);
+
     await handleIncomingMessage(
       action,
       SocketConnectionModel.fromJson(socketConnection),

@@ -14,7 +14,7 @@ import {
   actions as socketActions,
   selectors as socketSelectors,
 } from "./redux";
-import { openLivechat, toAction } from "./messages";
+import { moreMessages, openLivechat, toAction } from "./messages";
 
 interface IContext {
   isConnected: boolean;
@@ -28,6 +28,7 @@ function useSocketProvider() {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const dispatch = useAppDispatch();
   const websocketUrl = useAppSelector(configSelectors.websocketUrl);
+  const isOpen = useAppSelector(socketSelectors.isOpen);
   const isConnected = useAppSelector(socketSelectors.isConnected);
   const isConnecting = useAppSelector(socketSelectors.isConnecting);
   const open = useCallback(() => {
@@ -35,23 +36,29 @@ function useSocketProvider() {
   }, [dispatch, websocketUrl]);
 
   useEffect(() => {
-    if (isConnecting) {
-      var ws = new WebSocket(
+    if (isOpen) {
+      console.log("Connecting to websocket...");
+      var socket = new WebSocket(
         websocketUrl ??
           (window.location.protocol === "https:" ? "wss://" : "ws://") +
             window.location.host +
             "/ws"
       );
-      setWs(ws);
+      setWs(socket);
       const onOpen = () => {
         dispatch(socketActions.connected());
       };
       const onMessage = (msg: MessageEvent<any>) => {
+        console.log("message", msg.data);
         const action = toAction(msg.data);
         switch (action.type) {
           case "connected": {
             dispatch(socketActions.authenticated());
-            ws.send(JSON.stringify(openLivechat()));
+            socket.send(JSON.stringify(openLivechat()));
+            break;
+          }
+          case "livechatNewMessages": {
+            console.log(action.payload);
             break;
           }
         }
@@ -60,22 +67,23 @@ function useSocketProvider() {
         dispatch(socketActions.disconnected());
       };
       const onError = (err: Event) => {
-        dispatch(socketActions.error(err.toString()));
-        ws.close();
+        dispatch(socketActions.error((err as any).code.toString()));
+        socket.close();
       };
-      ws.addEventListener("open", onOpen);
-      ws.addEventListener("message", onMessage);
-      ws.addEventListener("close", onClose);
-      ws.addEventListener("error", onError);
+      socket.addEventListener("open", onOpen);
+      socket.addEventListener("message", onMessage);
+      socket.addEventListener("close", onClose);
+      socket.addEventListener("error", onError);
 
       return () => {
-        ws.removeEventListener("open", onOpen);
-        ws.removeEventListener("message", onMessage);
-        ws.removeEventListener("close", onClose);
-        ws.removeEventListener("error", onError);
+        console.log("cleaning up");
+        socket.removeEventListener("open", onOpen);
+        socket.removeEventListener("message", onMessage);
+        socket.removeEventListener("close", onClose);
+        socket.removeEventListener("error", onError);
       };
     }
-  }, [dispatch, isConnecting]);
+  }, [dispatch, isOpen]);
 
   return {
     isConnected,

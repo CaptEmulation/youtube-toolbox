@@ -4,7 +4,8 @@ import {
   TInitAction,
   TLivechatOpenAction,
   TAllActions,
-} from "@youtube-toolbox/models/src/socketConnection";
+  TRequestMoreMessages,
+} from "@youtube-toolbox/models";
 
 export function ping(): TPingAction {
   return {
@@ -15,6 +16,19 @@ export function ping(): TPingAction {
 export function openLivechat(): TInitAction {
   return {
     type: "openLivechat",
+  };
+}
+
+export function moreMessages(
+  livechatId: string,
+  nextPage?: string
+): TRequestMoreMessages {
+  return {
+    type: "requestMoreMessages",
+    payload: {
+      livechatId,
+      nextPage,
+    },
   };
 }
 

@@ -236,6 +236,27 @@ export class SocketConnectionsDao {
     );
   }
 
+  public async createNextPageLiveChatConnection(
+    user: Omit<ISocketConnection, "livechatId"> & {
+      livechatId: string;
+      nextPage: string;
+    }
+  ): Promise<void> {
+    await this.db.send(
+      new PutCommand({
+        TableName: SocketConnectionsDao.TABLE_NAME,
+        Item: {
+          ...toLivechatNextPageIndexedDb(
+            user.connectionId,
+            user.livechatId,
+            user.nextPage,
+            user.messageEndpoint
+          ),
+          ...tokenDetailsToDb(user),
+        },
+      })
+    );
+  }
   public async createOrUpdateLiveChatConnection(
     user: Omit<ISocketConnection, "livechatId"> & { livechatId: string }
   ): Promise<void> {
@@ -252,7 +273,7 @@ export class SocketConnectionsDao {
                       user.livechatId,
                       user.messageEndpoint
                     ),
-                    ...expires(),
+                    ...tokenDetailsToDb(user),
                   },
                 },
               },
@@ -265,7 +286,7 @@ export class SocketConnectionsDao {
                       user.nextPage,
                       user.messageEndpoint
                     ),
-                    ...expires(),
+                    ...tokenDetailsToDb(user),
                   },
                 },
               },
@@ -283,7 +304,7 @@ export class SocketConnectionsDao {
               user.livechatId,
               user.messageEndpoint
             ),
-            ...expires(),
+            ...tokenDetailsToDb(user),
           },
         })
       );
@@ -320,7 +341,6 @@ export class SocketConnectionsDao {
         ExpressionAttributeValues: {
           ":gsi1pk": messageEndpointIdToKey(messageEndpoint),
         },
-        ConsistentRead: true,
       })
     );
     if (!userRecord.Items) {
@@ -329,7 +349,9 @@ export class SocketConnectionsDao {
     return userRecord.Items.map(dbUserToModel);
   }
 
-  public async getByLiveChatId(livechatId: string) {
+  public async getByLiveChatId(
+    livechatId: string
+  ): Promise<ISocketConnection[]> {
     const userRecord = await this.db.send(
       new ScanCommand({
         TableName: SocketConnectionsDao.TABLE_NAME,
@@ -338,7 +360,6 @@ export class SocketConnectionsDao {
         ExpressionAttributeValues: {
           ":gsi1pk": livechatIdToKey(livechatId),
         },
-        ConsistentRead: true,
       })
     );
     if (!userRecord.Items) {
@@ -356,7 +377,6 @@ export class SocketConnectionsDao {
         ExpressionAttributeValues: {
           ":gsi1pk": liveChatIdNextPageKey(livechatId, nextPage),
         },
-        ConsistentRead: true,
       })
     );
     if (!userRecord.Items) {
@@ -376,11 +396,9 @@ export class SocketConnectionsDao {
         ExpressionAttributeValues: {
           ":pk": connectionIdToKey(connectionId),
         },
-        ConsistentRead: true,
-        AttributesToGet: ["pk", "sk"],
       })
     );
-    if (!results.Items) {
+    if (!results.Items || results.Items.length < 1) {
       return;
     }
 

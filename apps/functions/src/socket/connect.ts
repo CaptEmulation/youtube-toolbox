@@ -12,9 +12,9 @@ import {
 import { fromUserToCredentials } from "../utils/credentials";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyResult } from "aws-lambda";
-import bunyan from "bunyan";
+import { createLogger } from "../utils/logger";
 
-const logger = bunyan.createLogger({
+const logger = createLogger({
   name: "youtube-toolbox/socket/connect",
 });
 
@@ -68,7 +68,7 @@ export async function connect(
   }
   logger.info(`Socket connection created for ${sessionResponse.userId}`);
   await send({
-    type: "ok",
+    type: "connected",
   });
   return {
     statusCode: 200,

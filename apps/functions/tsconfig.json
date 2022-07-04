@@ -10,7 +10,7 @@
       "@youtube-toolbox/models/*": ["../../packages/models/src/*"],
       "@youtube-toolbox/backend": ["../../packages/backend/src/index"],
       "@youtube-toolbox/backend/*": ["../../packages/backend/src/*"],
-      "@/utils/*": ["./src/utils/*"]
+      "@/utils/*": ["./utils/*"]
     }
   },
   "include": ["src/**/*.ts"],
