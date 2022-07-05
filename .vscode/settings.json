@@ -4,9 +4,11 @@
     "apigw",
     "apigwv",
     "certificatemanager",
+    "Cooldowns",
     "LIVECHAT",
     "Millis",
     "reduxjs",
+    "superchat",
     "TGSI"
   ]
 }

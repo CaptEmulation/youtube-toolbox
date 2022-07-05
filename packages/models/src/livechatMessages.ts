@@ -8,10 +8,10 @@ export interface ILivechatMessages {
 }
 
 export class LivechatMessages {
-  public livechatId: string;
-  public nextPage?: string | null;
-  public requestAgainAt?: number | null;
-  public payload: youtube_v3.Schema$LiveChatMessageListResponse;
+  public readonly livechatId: string;
+  public readonly nextPage?: string | null;
+  public readonly requestAgainAt?: number | null;
+  public readonly payload: youtube_v3.Schema$LiveChatMessageListResponse;
 
   constructor(livechatMessages: ILivechatMessages) {
     this.livechatId = livechatMessages.livechatId;

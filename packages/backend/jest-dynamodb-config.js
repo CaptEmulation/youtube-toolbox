@@ -107,10 +107,55 @@ const tables = [
       Projection: { ProjectionType: "ALL" },
     }],
   }, {
-    TableName: "Loyalty",
-    KeySchema: [{ AttributeName: "ID", KeyType: "HASH" }],
-    AttributeDefinitions: [{ AttributeName: "ID", AttributeType: "S" }],
+    /*
+     * Table name: LoyaltyPoints
+     * 
+     * Description: Holds loyalty information
+     * 
+     *   pk                             sk                 nextPointsAt     points      expires
+     *  +------------------------------+------------------+---------------+------------+--------+
+     *  | CHANNEL_ID#id#recipientId    | POINTS#type      | number        | number     | number |
+     *  | CHANNEL_ID#id#recipientId    | POINTS#type      | number        | number     | number |
+     *  +------------------------------+------------------+---------------+------------+--------+
+     * 
+     *  Global Secondary Index 1:
+     *  GSI1PK                   GSI1SK             
+     *  +-----------------------+------------------+
+     *  | CHANNEL_ID#id         | points           |
+     *  +-----------------------+------------------+
+     *  
+     *  POINTS#type:
+     *   - total: never expires, has GSI1PK and GSI1SK
+     *   - chat: expires, posted a message, no GSI
+     *   - membership: expires, subscribed to a channel, no GSI
+     *   - gifted: expires, gifted a membership, no GSI
+     *   - superchat: expires, used a superchat, no GSI
+     */
+    TableName: "LoyaltyPoints",
+    KeySchema: [{
+      AttributeName: "pk", KeyType: "HASH"
+    }, {
+      AttributeName: "sk", KeyType: "RANGE"
+    }],
+    AttributeDefinitions: [{
+      AttributeName: "pk", AttributeType: "S"
+    }, {
+      AttributeName: "sk", AttributeType: "S"
+    }, {
+      AttributeName: "GSI1PK", AttributeType: "S"
+    }, {
+      AttributeName: "GSI1SK", AttributeType: "N"
+    }],
     BillingMode: "PAY_PER_REQUEST",
+    GlobalSecondaryIndexes: [{
+      IndexName: 'GSI1',
+      KeySchema: [{ AttributeName: "GSI1PK", KeyType: "HASH" }, { AttributeName: "GSI1SK", KeyType: "RANGE" }],
+      Projection: { ProjectionType: "ALL" },
+    }],
+    TimeToLiveSpecification: {
+      AttributeName: "expires",
+      Enabled: true
+    }
   }
 ]
 
