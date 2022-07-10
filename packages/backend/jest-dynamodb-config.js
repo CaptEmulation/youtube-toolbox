@@ -112,11 +112,11 @@ const tables = [
      * 
      * Description: Holds loyalty information
      * 
-     *   pk                             sk                 nextPointsAt     points      expires
-     *  +------------------------------+------------------+---------------+------------+--------+
-     *  | CHANNEL_ID#id#recipientId    | POINTS#type      | number        | number     | number |
-     *  | CHANNEL_ID#id#recipientId    | POINTS#type      | number        | number     | number |
-     *  +------------------------------+------------------+---------------+------------+--------+
+     *   pk                             sk                  points      expires
+     *  +------------------------------+------------------+------------+--------+
+     *  | CHANNEL_ID#id#recipientId    | POINTS#type      | number     | number |
+     *  | CHANNEL_ID#id#recipientId    | POINTS#type      | number     | number |
+     *  +------------------------------+------------------+------------+--------+
      * 
      *  Global Secondary Index 1:
      *  GSI1PK                   GSI1SK             

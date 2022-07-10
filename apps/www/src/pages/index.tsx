@@ -12,14 +12,30 @@ const LoginButton: FC = () => {
     return (
       <>
         Signed in as {session.user?.email} <br />
-        <button onClick={() => signOut()}>Sign out</button>
+        <button
+          onClick={() =>
+            signOut({
+              callbackUrl: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI,
+            })
+          }
+        >
+          Sign out
+        </button>
       </>
     );
   }
   return (
     <>
       Not signed in <br />
-      <button onClick={() => signIn()}>Sign in</button>
+      <button
+        onClick={() =>
+          signIn("google", {
+            callbackUrl: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI,
+          })
+        }
+      >
+        Sign in
+      </button>
     </>
   );
 };

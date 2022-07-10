@@ -40,17 +40,19 @@ export async function connect(
   sessionFromCookie: string,
   send: (data: TAllOutgoingActions) => Promise<void>
 ): Promise<APIGatewayProxyResult> {
+  logger.info("Received connection request");
   const [sessionResponse, tokenResponse] = await userSessionDao.getUserSession(
     sessionFromCookie
   );
   if (!tokenResponse) {
+    logger.warn("No token in response");
     return {
       statusCode: 401,
       body: "Unauthorized",
     };
   }
   const user = tokenResponse;
-
+  logger.info("Found user token");
   try {
     await socketConnectionsDao.createOrUpdateSocketConnection(
       SocketConnectionModel.fromGoogleCredentials({
@@ -59,6 +61,7 @@ export async function connect(
         credentials: fromUserToCredentials(user),
       })
     );
+    logger.info("Created or updated socket connection");
   } catch (err) {
     logger.error("Failed to create or update socket connection", err);
     return {

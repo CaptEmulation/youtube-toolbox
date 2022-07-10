@@ -1,5 +1,5 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { ApiGatewayManagementApi } from "aws-sdk";
+import { ApiGatewayManagementApi } from "@aws-sdk/client-apigatewaymanagementapi";
 import { TAllOutgoingActions } from "@youtube-toolbox/models";
 import { sendAction } from "../socket/handler";
 import { message } from "../socket/message";

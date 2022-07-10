@@ -8,7 +8,15 @@
     "paths": {
       "@youtube-toolbox/models": ["../models/src/index"],
       "@youtube-toolbox/models/*": ["../models/src/*"]
-    }
+    },
+    "noErrorTruncation": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": false
+    // "strictPropertyInitialization": false
   },
   "include": ["**/*.ts"],
   "exclude": ["**/node_modules", "**/.*/", "dist", "build"],

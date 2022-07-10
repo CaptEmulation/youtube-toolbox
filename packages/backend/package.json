@@ -10,15 +10,14 @@
     "db:local": "node dynamodb-local.js"
   },
   "devDependencies": {
+    "@youtube-toolbox/models": "1.0.0",
     "eslint": "^8.18.0",
     "prettier": "^2.7.1",
-    "typescript": "^4.7.4",
-    "@youtube-toolbox/models": "1.0.0"
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.121.0",
     "@aws-sdk/lib-dynamodb": "^3.121.0",
-    "aws-sdk": "^2.1167.0",
     "dynamodb-admin": "^4.4.0",
     "dynamodb-local": "^0.0.31"
   }

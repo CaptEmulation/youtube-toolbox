@@ -38,50 +38,54 @@ function useSocketProvider() {
   useEffect(() => {
     if (isOpen) {
       console.log("Connecting to websocket...");
-      var socket = new WebSocket(
-        websocketUrl ??
+      try {
+        const absoluteWebsocketUrl =
+          websocketUrl ??
           (window.location.protocol === "https:" ? "wss://" : "ws://") +
             window.location.host +
-            "/ws"
-      );
-      setWs(socket);
-      const onOpen = () => {
-        dispatch(socketActions.connected());
-      };
-      const onMessage = (msg: MessageEvent<any>) => {
-        console.log("message", msg.data);
-        const action = toAction(msg.data);
-        switch (action.type) {
-          case "connected": {
-            dispatch(socketActions.authenticated());
-            socket.send(JSON.stringify(openLivechat()));
-            break;
+            "/ws";
+        var socket = new WebSocket(absoluteWebsocketUrl);
+        setWs(socket);
+        const onOpen = () => {
+          dispatch(socketActions.connected());
+        };
+        const onMessage = (msg: MessageEvent<any>) => {
+          console.log("message", msg.data);
+          const action = toAction(msg.data);
+          switch (action.type) {
+            case "connected": {
+              dispatch(socketActions.authenticated());
+              socket.send(JSON.stringify(openLivechat()));
+              break;
+            }
+            case "livechatNewMessages": {
+              console.log(action.payload);
+              break;
+            }
           }
-          case "livechatNewMessages": {
-            console.log(action.payload);
-            break;
-          }
-        }
-      };
-      const onClose = () => {
-        dispatch(socketActions.disconnected());
-      };
-      const onError = (err: Event) => {
-        dispatch(socketActions.error((err as any).code.toString()));
-        socket.close();
-      };
-      socket.addEventListener("open", onOpen);
-      socket.addEventListener("message", onMessage);
-      socket.addEventListener("close", onClose);
-      socket.addEventListener("error", onError);
+        };
+        const onClose = () => {
+          dispatch(socketActions.disconnected());
+        };
+        const onError = (err: Event) => {
+          dispatch(socketActions.error((err as any).code.toString()));
+          socket.close();
+        };
+        socket.addEventListener("open", onOpen);
+        socket.addEventListener("message", onMessage);
+        socket.addEventListener("close", onClose);
+        socket.addEventListener("error", onError);
 
-      return () => {
-        console.log("cleaning up");
-        socket.removeEventListener("open", onOpen);
-        socket.removeEventListener("message", onMessage);
-        socket.removeEventListener("close", onClose);
-        socket.removeEventListener("error", onError);
-      };
+        return () => {
+          console.log("cleaning up");
+          socket.removeEventListener("open", onOpen);
+          socket.removeEventListener("message", onMessage);
+          socket.removeEventListener("close", onClose);
+          socket.removeEventListener("error", onError);
+        };
+      } catch (err) {
+        console.error(err);
+      }
     }
   }, [dispatch, isOpen]);
 

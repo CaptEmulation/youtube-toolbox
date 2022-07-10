@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "dev:local_db": "DYNAMODB_ENDPOINT=http://localhost:8000 DYNAMODB_REGION=local-env yarn dev",
-    "build": "next build",
+    "build": "node build.mjs",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.121.0",
+    "@aws-sdk/client-ssm": "^3.121.0",
     "@aws-sdk/lib-dynamodb": "^3.121.0",
     "@next-auth/dynamodb-adapter": "^1.0.3",
     "@reduxjs/toolkit": "^1.8.3",

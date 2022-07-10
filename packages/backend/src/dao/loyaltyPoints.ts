@@ -1,12 +1,13 @@
 import {
+  BatchWriteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 import {
-  ELoyaltyPointTypes,
   ILoyaltyPoints,
   TLoyaltyPointsCooldowns,
+  TLoyaltyPointTypes,
 } from "@youtube-toolbox/models";
 
 type TPK = string & { __pk: true };
@@ -19,10 +20,9 @@ interface IDB {
   sk: TSK;
   GSI1PK?: TGSI1PK;
   GSI1SK?: TGSI1SK;
-  type: ELoyaltyPointTypes;
+  type: TLoyaltyPointTypes;
   expires?: number;
-  points: number;
-  nextPointsAt?: number;
+  points?: number;
   channelId: string;
   recipientId: string;
 }
@@ -32,12 +32,9 @@ function toIDB(item: Record<string, any>): IDB {
   const sk = asSk(item.sk);
   const GSI1PK = item.GSI1PK ? asGSI1PK(item.GSI1PK) : undefined;
   const GSI1SK = item.GSI1SK ? asGSI1SK(item.GSI1SK) : undefined;
-  const type = item.type as ELoyaltyPointTypes;
+  const type = item.type as TLoyaltyPointTypes;
   const expires = item.expires ? Number(item.expires) : undefined;
   const points = Number(item.points);
-  const nextPointsAt = item.nextPointsAt
-    ? Number(item.nextPointsAt)
-    : undefined;
   const channelId = pk.slice(CHANNEL_ID_PREFIX.length);
   const recipientId = sk.slice(POINTS_PREFIX.length);
   return {
@@ -48,7 +45,6 @@ function toIDB(item: Record<string, any>): IDB {
     type,
     expires,
     points,
-    nextPointsAt,
     channelId,
     recipientId,
   };
@@ -89,7 +85,7 @@ function channelIdRecipientIdToPK(channelId: string, recipientId: string): TPK {
   return asPk(`${CHANNEL_ID_PREFIX}${channelId}#${recipientId}`);
 }
 
-function pointTypeToSK(pointType: ELoyaltyPointTypes): TSK {
+function pointTypeToSK(pointType: TLoyaltyPointTypes): TSK {
   return asSk(`${POINTS_PREFIX}${pointType}`);
 }
 
@@ -129,22 +125,16 @@ export class LoyaltyPointsDao {
 
     const items = results.Items.map(toIDB);
 
-    const totalRow = items.find(
-      (item) => item.sk === `${POINTS_PREFIX}${ELoyaltyPointTypes.TOTAL}`
-    );
+    const totalRow = items.find((item) => item.sk === `${POINTS_PREFIX}TOTAL`);
     if (!totalRow) {
       return null;
     }
 
     const cooldowns: TLoyaltyPointsCooldowns = items.reduce((acc, item) => {
-      if (
-        item.nextPointsAt &&
-        item.sk === `${POINTS_PREFIX}${ELoyaltyPointTypes.TOTAL}`
-      ) {
-        acc[ELoyaltyPointTypes.TOTAL] = item.nextPointsAt;
-      } else if (item.expires) {
-        acc[item.type] = item.expires;
+      if (item.type === "TOTAL") {
+        return acc;
       }
+      acc[item.type] = item.expires;
       return acc;
     }, {} as TLoyaltyPointsCooldowns);
 
@@ -152,7 +142,8 @@ export class LoyaltyPointsDao {
       channelId,
       recipientId,
       cooldowns,
-      points: totalRow.points,
+      points: totalRow.points || 0,
+      dirtyTypes: [],
     };
   }
 
@@ -165,7 +156,7 @@ export class LoyaltyPointsDao {
         TableName: LoyaltyPointsDao.TABLE_NAME,
         Key: {
           pk: channelIdRecipientIdToPK(channelId, recipientId),
-          sk: pointTypeToSK(ELoyaltyPointTypes.TOTAL),
+          sk: pointTypeToSK("TOTAL"),
         },
       })
     );
@@ -178,37 +169,32 @@ export class LoyaltyPointsDao {
   public async createOrUpdateLoyaltyPoints(
     loyaltyPoints: ILoyaltyPoints
   ): Promise<void> {
-    const { channelId, recipientId, cooldowns, points } = loyaltyPoints;
+    const { channelId, recipientId, cooldowns, points, dirtyTypes } =
+      loyaltyPoints;
 
     const items: IDB[] = [];
-    for (const type of Object.keys(cooldowns)) {
-
-    }
-    for (const [type, expires] of Object.entries(cooldowns)) {
-      
-    }
     items.push({
       pk: channelIdRecipientIdToPK(channelId, recipientId),
-      sk: pointTypeToSK(ELoyaltyPointTypes.TOTAL),
+      sk: pointTypeToSK("TOTAL"),
       points,
-      nextPointsAt: cooldowns[ELoyaltyPointTypes.TOTAL],
       channelId,
       recipientId,
-      type: ELoyaltyPointTypes.TOTAL,
+      type: "TOTAL",
       GSI1PK: channelIdToGSI1PK(channelId),
       GSI1SK: pointsToGSI1SK(points),
     });
-
-    Object.keys(cooldowns).forEach((type) => {
-      if (type === ELoyaltyPointTypes.TOTAL) {
-        return;
+    if (dirtyTypes) {
+      for (const type of dirtyTypes) {
+        items.push({
+          pk: channelIdRecipientIdToPK(channelId, recipientId),
+          sk: pointTypeToSK(type),
+          channelId,
+          recipientId,
+          type,
+          expires: cooldowns[type],
+        });
       }
-      items.push({
-        pk: channelIdRecipientIdToPK(channelId, recipientId),
-        sk: pointTypeToSK(type as ELoyaltyPointTypes),
-        expires: cooldowns[type],
-      });
-    } as IDB);
+    }
 
     await this.db.send(
       new BatchWriteCommand({

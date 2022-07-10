@@ -5,7 +5,7 @@ import {
   TAllIncomingActions,
   TAllOutgoingActions,
 } from "@youtube-toolbox/models";
-import { ApiGatewayManagementApi } from "aws-sdk";
+import { ApiGatewayManagementApi } from "@aws-sdk/client-apigatewaymanagementapi";
 import { openLiveChat, requestMoreMessages } from "./commands/openLiveChat";
 import { createLogger } from "../utils/logger";
 
@@ -18,12 +18,10 @@ export async function sendAction(
   connectionId: string,
   action: TAllOutgoingActions
 ) {
-  await apigwManagementApi
-    .postToConnection({
-      ConnectionId: connectionId,
-      Data: JSON.stringify(action),
-    })
-    .promise();
+  await apigwManagementApi.postToConnection({
+    ConnectionId: connectionId,
+    Data: Buffer.from(JSON.stringify(action)),
+  });
 }
 
 export async function handleIncomingMessage(

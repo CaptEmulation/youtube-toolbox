@@ -11,10 +11,14 @@ if (!process.env.GOOGLE_CLIENT_SECRET) {
 const nextConfig = withTM({
   reactStrictMode: true,
   env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXT_PUBLIC_GOOGLE_REDIRECT_URI: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     DYNAMODB_ENDPOINT: process.env.DYNAMODB_ENDPOINT,
     DYNAMODB_REGION: process.env.DYNAMODB_REGION,
+    SSM_WWW_PARAMS: process.env.SSM_WWW_PARAMS,
   }
 })
 

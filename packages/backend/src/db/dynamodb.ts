@@ -1,13 +1,9 @@
-import {
-  DynamoDBClient,
-  DynamoDBClientConfig,
-  ListTablesCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 let instance: DynamoDBDocumentClient;
 
-export function createDynamoDb() {
+export function createDynamoDb(opts?: DynamoDBClientConfig) {
   const isTest = process.env.NODE_ENV === "test";
   const config: DynamoDBClientConfig = {
     ...(isTest
@@ -19,6 +15,7 @@ export function createDynamoDb() {
           endpoint: process.env.DYNAMODB_ENDPOINT,
           region: process.env.DYNAMODB_REGION,
         }),
+    ...opts,
   };
   const ddb = new DynamoDBClient(config);
   return ddb;

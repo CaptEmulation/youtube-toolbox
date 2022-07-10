@@ -1,0 +1,16 @@
+creation_rules:
+  - path_regex: apps/www/.env*
+    key_groups:
+      - kms:
+          - arn: arn:aws:kms:us-east-2:843076120672:key/b2b1d556-2165-47ec-8700-5ad1cfe3b032
+            role: arn:aws:iam::843076120672:role/Sops-SopsUserAccessKeyRole8E22FE05-E1AZC6ASRR78
+  - path_regex: secrets/*
+    key_groups:
+      - kms:
+          - arn: arn:aws:kms:us-east-2:843076120672:key/b2b1d556-2165-47ec-8700-5ad1cfe3b032
+            role: arn:aws:iam::843076120672:role/Sops-SopsUserAccessKeyRole8E22FE05-E1AZC6ASRR78
+  - path_regex: deploy/cdk.context.json
+    key_groups:
+      - kms:
+          - arn: arn:aws:kms:us-east-2:843076120672:key/b2b1d556-2165-47ec-8700-5ad1cfe3b032
+            role: arn:aws:iam::843076120672:role/Sops-SopsUserAccessKeyRole8E22FE05-E1AZC6ASRR78

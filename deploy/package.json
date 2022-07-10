@@ -13,6 +13,7 @@
     "@types/node": "^16",
     "aws-cdk-lib": "^2.29.1",
     "cdk": "^2.29.1",
+    "dotenv": "^16.0.1",
     "source-map-support": "^0.5.21"
   },
   "license": "MIT",

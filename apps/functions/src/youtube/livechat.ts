@@ -1,5 +1,5 @@
 import { Credentials, OAuth2Client } from "google-auth-library";
-import { google } from "googleapis";
+import { google } from "@googleapis/youtube";
 import { createLogger } from "../utils/logger";
 
 import {

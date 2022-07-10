@@ -13,15 +13,17 @@ import * as patterns from "aws-cdk-lib/aws-route53-patterns";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
+import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 
 export interface IProps extends cdk.StackProps {
   readonly domain?: [string, string] | string;
-  readonly webSocketEndpoint: string;
+  readonly websocketApi: apigwv2.WebSocketApi;
+  readonly sessionsTable: cdk.aws_dynamodb.Table;
 }
 
 export class WwwStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props: IProps) {
-    const { domain, webSocketEndpoint, ...rest } = props;
+    const { domain, sessionsTable, websocketApi, ...rest } = props;
     super(scope, id, rest);
 
     const staticAssets = new s3.Bucket(this, "StaticAssets");
@@ -55,10 +57,21 @@ export class WwwStack extends cdk.Stack {
         {
           domainName: `www.${domainName}`,
           hostedZone,
-          region: props.env?.region,
+          region: "us-east-1",
         }
       );
     }
+
+    // // Create a new SSM Parameter holding the table name, because we can
+    // // not pass env vars into edge lambdas
+    const wwwParams = new ssm.StringParameter(this, "Parameters", {
+      description: "Deploy time details for edge functions",
+      parameterName: `${id}_Params`,
+      stringValue: JSON.stringify({
+        dynamoDbRegion: "us-east-1",
+        sessionsTable: sessionsTable.tableName,
+      }),
+    });
 
     const apiHandler = new lambda.Function(this, "apiHandler", {
       runtime: lambda.Runtime.NODEJS_16_X,
@@ -70,6 +83,9 @@ export class WwwStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
     });
 
+    sessionsTable.grantReadWriteData(apiHandler);
+    wwwParams.grantRead(apiHandler);
+
     const defaultHandler = new lambda.Function(this, "defaultHandler", {
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: "index.handler",
@@ -79,6 +95,8 @@ export class WwwStack extends cdk.Stack {
       memorySize: 512,
       timeout: cdk.Duration.seconds(10),
     });
+
+    sessionsTable.grantReadWriteData(defaultHandler);
 
     // const imageHandler = new lambda.Function(this, "imageHandler", {
     //   runtime: lambda.Runtime.NODEJS_16_X,
@@ -146,6 +164,7 @@ export class WwwStack extends cdk.Stack {
         queryStringBehavior: cloudfront.OriginRequestQueryStringBehavior.none(),
       }
     );
+    const websocketOrigin = cdk.Fn.parseDomainName(websocketApi.apiEndpoint);
     const distribution = new cloudfront.Distribution(this, "www", {
       ...(certificate && domainName
         ? {
@@ -174,9 +193,25 @@ export class WwwStack extends cdk.Stack {
       },
       additionalBehaviors: {
         "/ws": {
-          origin: new origins.HttpOrigin(webSocketEndpoint),
+          origin: new origins.HttpOrigin(websocketOrigin),
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           originRequestPolicy: wsOriginRequestPolicy,
+          edgeLambdas: [
+            {
+              eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
+              functionVersion: new cloudfront.experimental.EdgeFunction(
+                this,
+                "WsOriginRequest",
+                {
+                  code: lambda.Code.fromAsset(
+                    path.join(__dirname, "./edge/wsToProdOriginRequest")
+                  ),
+                  handler: "index.handler",
+                  runtime: lambda.Runtime.NODEJS_16_X,
+                }
+              ),
+            },
+          ],
         },
         // "_next/image*": {
         //   origin: new origins.S3Origin(staticAssets),
@@ -270,6 +305,9 @@ export class WwwStack extends cdk.Stack {
     new cdk.CfnOutput(this, "distributionUrl", {
       value: distribution.distributionDomainName,
       description: "Distribution URL",
+    });
+    new cdk.CfnOutput(this, "wwwParams", {
+      value: wwwParams.parameterName,
     });
   }
 }

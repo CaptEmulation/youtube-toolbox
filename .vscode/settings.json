@@ -4,9 +4,11 @@
     "apigw",
     "apigwv",
     "certificatemanager",
+    "cooldown",
     "Cooldowns",
     "LIVECHAT",
     "Millis",
+    "NEXTAUTH",
     "reduxjs",
     "superchat",
     "TGSI"

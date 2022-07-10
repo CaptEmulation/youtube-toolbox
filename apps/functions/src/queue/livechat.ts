@@ -1,6 +1,6 @@
 import { getDb, SocketConnectionsDao } from "@youtube-toolbox/backend";
 import { Credentials } from "google-auth-library";
-import { youtube_v3 } from "googleapis";
+import { youtube_v3 } from "@googleapis/youtube";
 import { createLogger } from "../utils/logger";
 import { fetchLivechat } from "../youtube/livechat";
 import {

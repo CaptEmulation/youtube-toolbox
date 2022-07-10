@@ -15,15 +15,15 @@ const logger = createLogger({
 const db = getDb();
 const socketConnectionsDao = new SocketConnectionsDao(db);
 
-if (!process.env.LIVECHAT_MESSAGE_TOPIC) {
-  throw new Error("LIVECHAT_MESSAGE_TOPIC is not defined in env");
-}
-const LIVECHAT_MESSAGE_TOPIC = process.env.LIVECHAT_MESSAGE_TOPIC;
-
 export async function openLiveChat(
   socketConnection: SocketConnectionModel,
   send: (action: TAllOutgoingActions) => Promise<void>
 ) {
+  if (!process.env.LIVECHAT_MESSAGE_TOPIC_ARN) {
+    throw new Error("LIVECHAT_MESSAGE_TOPIC is not defined in env");
+  }
+  const LIVECHAT_MESSAGE_TOPIC_ARN = process.env.LIVECHAT_MESSAGE_TOPIC_ARN;
+
   const credentials = socketConnection.googleCredentials();
   const livechatId = await findLatestLiveBroadcast(credentials);
   if (!livechatId) {
@@ -47,7 +47,7 @@ export async function openLiveChat(
     return;
   }
   logger.debug(`Publishing next check for livechatId: ${livechatId}`);
-  await publish<IQueueNextPage>(LIVECHAT_MESSAGE_TOPIC, {
+  await publish<IQueueNextPage>(LIVECHAT_MESSAGE_TOPIC_ARN, {
     type: "queueNextPage",
     credentials,
     livechatId,
