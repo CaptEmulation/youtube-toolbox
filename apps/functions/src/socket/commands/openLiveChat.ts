@@ -7,10 +7,10 @@ import {
   SocketConnectionModel,
   TAllOutgoingActions,
 } from "@youtube-toolbox/models";
-import { Credentials } from "google-auth-library";
+import type { Credentials } from "google-auth-library";
 import { createLogger } from "../../utils/logger";
 import { fetchLivechat, findLatestLiveBroadcast } from "../../youtube/livechat";
-import { IQueueNextPage, publish } from "../../queue";
+import type { IPublisher, IQueueNextPage } from "../../queue";
 
 const logger = createLogger({
   name: "youtube-toolbox/socket/commands/openLiveChat",
@@ -22,7 +22,8 @@ const livechatMessagesDao = new LivechatMessagesDao(db);
 
 export async function openLiveChat(
   socketConnection: SocketConnectionModel,
-  send: (action: TAllOutgoingActions) => Promise<void>
+  send: (action: TAllOutgoingActions) => Promise<void>,
+  publish: IPublisher<IQueueNextPage>
 ) {
   if (!process.env.LIVECHAT_MESSAGE_TOPIC_ARN) {
     throw new Error("LIVECHAT_MESSAGE_TOPIC is not defined in env");
@@ -32,6 +33,7 @@ export async function openLiveChat(
   const credentials = socketConnection.googleCredentials();
   const livechatId = await findLatestLiveBroadcast(credentials);
   if (!livechatId) {
+    logger.info("No live broadcast found");
     return null;
   }
 
@@ -71,7 +73,7 @@ export async function openLiveChat(
   );
 
   logger.debug(`Publishing next check for livechatId: ${livechatId}`);
-  await publish<IQueueNextPage>(LIVECHAT_MESSAGE_TOPIC_ARN, {
+  await publish.emit(LIVECHAT_MESSAGE_TOPIC_ARN, {
     type: "queueNextPage",
     credentials,
     livechatId,

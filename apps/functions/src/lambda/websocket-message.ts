@@ -25,7 +25,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       };
     }
     const connectionId = event.requestContext.connectionId;
-    const messageEndpoint = `${event.requestContext.domainName}/${event.requestContext.stage}`;
+    const messageEndpoint = `https://${event.requestContext.domainName}/${event.requestContext.stage}`;
     await message(
       connectionId,
       messageEndpoint,

@@ -27,6 +27,7 @@ export const handler: SQSHandler = async (event) => {
         nextPage,
         livechatMessageTopicArn,
         async (destination, data) => {
+          logger.debug(`Publishing message to ${destination.connectionId}`);
           await sendAction(
             new ApiGatewayManagementApi({
               apiVersion: "2018-11-29",
@@ -42,6 +43,7 @@ export const handler: SQSHandler = async (event) => {
         },
         {
           async emit(destination, data) {
+            logger.debug(`Publishing message to ${destination}`);
             await publishOne(data, destination);
           },
         }

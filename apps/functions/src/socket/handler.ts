@@ -8,6 +8,7 @@ import {
 import { ApiGatewayManagementApi } from "@aws-sdk/client-apigatewaymanagementapi";
 import { openLiveChat, requestMoreMessages } from "./commands/openLiveChat";
 import { createLogger } from "../utils/logger";
+import { publishOne } from "../queue/sns";
 
 const logger = createLogger({
   name: "youtube-toolbox/socket/handler",
@@ -32,7 +33,11 @@ export async function handleIncomingMessage(
   switch (action.type) {
     case "openLivechat": {
       logger.debug("Opening livechat");
-      await openLiveChat(socketConnection, send);
+      await openLiveChat(socketConnection, send, {
+        async emit(destination, data) {
+          await publishOne(data, destination);
+        },
+      });
       break;
     }
     case "requestMoreMessages": {

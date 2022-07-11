@@ -27,7 +27,7 @@ export interface IQueueNextPage {
 
 export function parseQueueNextPage(body: string): IQueueNextPage {
   const payload = JSON.parse(body);
-  if (type !== "queueNextPage") {
+  if (payload.type !== "queueNextPage") {
     throw new Error(`Unknown action: ${body}`);
   }
   return payload;
@@ -45,6 +45,7 @@ export async function fetchNewLivechat(
   logger.info("Received message");
   const now = Date.now();
   if (now < message.requestAgainAt) {
+    logger.debug(`Waiting ${message.requestAgainAt - now}ms`);
     await new Promise((resolve) =>
       setTimeout(resolve, message.requestAgainAt - now)
     );
@@ -56,6 +57,7 @@ export async function fetchNewLivechat(
   );
 
   if (moreLivechat?.nextPageToken && moreLivechat.pollingIntervalMillis) {
+    logger.debug(`Fetching next page: ${moreLivechat.nextPageToken}`);
     // update livechat message with the nextPageToken
     await livechatMessagesDao.createOrUpdate(
       message.livechatId,
@@ -68,6 +70,7 @@ export async function fetchNewLivechat(
       message.livechatId
     );
     if (openSocketConnections.length > 0) {
+      logger.debug(`Sending next check for livechatId: ${message.livechatId}`);
       await Promise.all(
         openSocketConnections.map((s) =>
           Promise.all([
@@ -85,6 +88,10 @@ export async function fetchNewLivechat(
             ),
           ])
         )
+      );
+    } else {
+      logger.debug(
+        `No open socket connections for livechatId: ${message.livechatId}`
       );
     }
     // Get current active destinations

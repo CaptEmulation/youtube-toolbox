@@ -1,5 +1,5 @@
-import { Credentials, OAuth2Client } from "google-auth-library";
-import { google } from "@googleapis/youtube";
+import type { Credentials } from "google-auth-library";
+import { youtube, auth as Auth } from "@googleapis/youtube";
 import { createLogger } from "../utils/logger";
 
 import {
@@ -13,7 +13,7 @@ const logger = createLogger({
 });
 
 function googleOAuthCredentials(credentials: Credentials) {
-  const auth = new OAuth2Client({
+  const auth = new Auth.OAuth2({
     clientId: googleClientId,
     clientSecret: googleClientSecret,
     redirectUri: googleRedirectUri,
@@ -25,11 +25,11 @@ function googleOAuthCredentials(credentials: Credentials) {
 export async function findLatestLiveBroadcast(credentials: Credentials) {
   logger.debug("Finding latest live broadcast");
   const auth = googleOAuthCredentials(credentials);
-  const youtube = google.youtube({ version: "v3", auth });
-  const response = await youtube.liveBroadcasts.list({
+  const yt = youtube({ version: "v3", auth });
+  const response = await yt.liveBroadcasts.list({
     part: ["snippet", "contentDetails", "status"],
-    broadcastStatus: "active",
     broadcastType: "all",
+    mine: true,
   });
   const broadcasts = response.data;
   if (!broadcasts.items || broadcasts.items.length === 0) {
@@ -77,8 +77,8 @@ export async function fetchLivechat(
 ) {
   logger.debug(`Fetching live chat ${liveChatId}`);
   const auth = googleOAuthCredentials(credentials);
-  const youtube = google.youtube({ version: "v3", auth });
-  const response = await youtube.liveChatMessages.list({
+  const yt = youtube({ version: "v3", auth });
+  const response = await yt.liveChatMessages.list({
     liveChatId,
     part: ["snippet", "authorDetails"],
     maxResults: 100,

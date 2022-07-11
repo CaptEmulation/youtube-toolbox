@@ -337,7 +337,10 @@ export class SocketConnectionsDao {
       new ScanCommand({
         TableName: SocketConnectionsDao.TABLE_NAME,
         IndexName: "GSI1",
-        FilterExpression: "gsi1pk = :gsi1pk",
+        FilterExpression: "#gsi1pk = :gsi1pk",
+        ExpressionAttributeNames: {
+          "#gsi1pk": "GSI1PK",
+        },
         ExpressionAttributeValues: {
           ":gsi1pk": messageEndpointIdToKey(messageEndpoint),
         },
@@ -356,7 +359,10 @@ export class SocketConnectionsDao {
       new ScanCommand({
         TableName: SocketConnectionsDao.TABLE_NAME,
         IndexName: "GSI1",
-        FilterExpression: "gsi1pk = :gsi1pk",
+        FilterExpression: "#gsi1pk = :gsi1pk",
+        ExpressionAttributeNames: {
+          "#gsi1pk": "GSI1PK",
+        },
         ExpressionAttributeValues: {
           ":gsi1pk": livechatIdToKey(livechatId),
         },
@@ -373,7 +379,10 @@ export class SocketConnectionsDao {
       new ScanCommand({
         TableName: SocketConnectionsDao.TABLE_NAME,
         IndexName: "GSI1",
-        FilterExpression: "gsi1pk = :gsi1pk",
+        FilterExpression: "#gsi1pk = :gsi1pk",
+        ExpressionAttributeNames: {
+          "#gsi1pk": "GSI1PK",
+        },
         ExpressionAttributeValues: {
           ":gsi1pk": liveChatIdNextPageKey(livechatId, nextPage),
         },

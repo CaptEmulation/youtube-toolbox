@@ -19,7 +19,7 @@ const logger = bunyan.createLogger({
 });
 
 export const handler = (async (event) => {
-  logger.info("Received connection request");
+  logger.info("Received connection request", event.requestContext.connectionId);
   if (!event.requestContext.connectionId) {
     logger.warn("No connectionId in event");
     return {

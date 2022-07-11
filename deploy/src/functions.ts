@@ -100,7 +100,7 @@ export class FunctionStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(5),
       memorySize: 128,
       environment: {
-        MINIMUM_LOG_LEVEL: "INFO",
+        LOG_LEVEL: "debug",
         LAZY_MESSAGE_TOPIC_ARN: lazyMessageTopic.topicArn,
         ...env,
       },
@@ -128,7 +128,7 @@ export class FunctionStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(5),
         memorySize: 128,
         environment: {
-          MINIMUM_LOG_LEVEL: "INFO",
+          LOG_LEVEL: "debug",
           LIVECHAT_MESSAGE_TOPIC_ARN: liveMessageTopic.topicArn,
           TABLE_NAME_SESSION: sessionsTable.tableName,
           TABLE_NAME_SOCKET_CONNECTIONS: socketConnectionTable.tableName,
@@ -156,7 +156,7 @@ export class FunctionStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(5),
       memorySize: 256,
       environment: {
-        MINIMUM_LOG_LEVEL: "INFO",
+        LOG_LEVEL: "debug",
         TABLE_NAME_SESSION: sessionsTable.tableName,
         TABLE_NAME_SOCKET_CONNECTIONS: socketConnectionTable.tableName,
         LAZY_MESSAGE_TOPIC_ARN: lazyMessageTopic.topicArn,
@@ -165,9 +165,10 @@ export class FunctionStack extends cdk.Stack {
     });
     socketConnectionTable.grantReadWriteData(websocketConnectHandler);
     sessionsTable.grantReadData(websocketConnectHandler);
+    lazyMessageTopic.grantPublish(websocketConnectHandler);
 
     const websocketDisconnectHandler = new lambda.Function(this, "disconnect", {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../.layers/websocket-disconnect")
       ),
@@ -175,7 +176,7 @@ export class FunctionStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(5),
       memorySize: 256,
       environment: {
-        MINIMUM_LOG_LEVEL: "INFO",
+        LOG_LEVEL: "debug",
         TABLE_NAME_SESSION: sessionsTable.tableName,
         TABLE_NAME_SOCKET_CONNECTIONS: socketConnectionTable.tableName,
         LIVECHAT_MESSAGE_TOPIC_ARN: liveMessageTopic.topicArn,
@@ -186,7 +187,7 @@ export class FunctionStack extends cdk.Stack {
     sessionsTable.grantReadData(websocketDisconnectHandler);
 
     const websocketMessageHandler = new lambda.Function(this, "message", {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../.layers/websocket-message")
       ),
@@ -194,16 +195,17 @@ export class FunctionStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(5),
       memorySize: 256,
       environment: {
-        MINIMUM_LOG_LEVEL: "INFO",
+        LOG_LEVEL: "debug",
         TABLE_NAME_SESSION: sessionsTable.tableName,
         TABLE_NAME_SOCKET_CONNECTIONS: socketConnectionTable.tableName,
+        TABLE_NAME_LIVECHAT_MESSAGES: livechatMessagesTable.tableName,
         LIVECHAT_MESSAGE_TOPIC_ARN: liveMessageTopic.topicArn,
         ...env,
       },
     });
     socketConnectionTable.grantReadWriteData(websocketMessageHandler);
-    livechatMessagesTable.grantReadData(websocketConnectHandler);
-    sessionsTable.grantReadData(websocketMessageHandler);
+    livechatMessagesTable.grantReadWriteData(websocketMessageHandler);
+    sessionsTable.grantReadWriteData(websocketMessageHandler);
     liveMessageTopic.grantPublish(websocketMessageHandler);
 
     let hostedZone: cdk.aws_route53.IHostedZone | null = null;
@@ -270,6 +272,7 @@ export class FunctionStack extends cdk.Stack {
     });
 
     webSocketStage.grantManagementApiAccess(lazyMessageHandler);
+    webSocketStage.grantManagementApiAccess(livechatMessageHandler);
     webSocketStage.grantManagementApiAccess(websocketMessageHandler);
 
     if (domainName && hostedZone && certificate) {
