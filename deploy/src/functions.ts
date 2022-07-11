@@ -52,7 +52,7 @@ export class FunctionStack extends cdk.Stack {
       sortKey: { name: "GSI1SK", type: dynamodb.AttributeType.STRING },
     });
 
-    const loyaltyTable = new dynamodb.Table(this, `LoyaltyPoints`, {
+    const loyaltyTable = new dynamodb.Table(this, `LoyaltyPoints-2`, {
       partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
       timeToLiveAttribute: "expires",
@@ -60,7 +60,17 @@ export class FunctionStack extends cdk.Stack {
     loyaltyTable.addGlobalSecondaryIndex({
       indexName: "GSI1",
       partitionKey: { name: "GSI1PK", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "GSI1SK", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "GSI1SK", type: dynamodb.AttributeType.NUMBER },
+    });
+
+    const livechatMessagesTable = new dynamodb.Table(this, `LivechatMessages`, {
+      partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "expires",
+    });
+    loyaltyTable.addLocalSecondaryIndex({
+      indexName: "LSI1",
+      sortKey: { name: "LSI1SK", type: dynamodb.AttributeType.NUMBER },
     });
 
     const liveMessageQueue = new sqs.Queue(this, "liveMessageQueue", {
@@ -100,6 +110,42 @@ export class FunctionStack extends cdk.Stack {
         }),
       ],
     });
+    liveMessageTopic.grantPublish(lazyMessageHandler);
+    socketConnectionTable.grantReadWriteData(lazyMessageHandler);
+    livechatMessagesTable.grantReadWriteData(lazyMessageHandler);
+    loyaltyTable.grantReadWriteData(lazyMessageHandler);
+    sessionsTable.grantReadWriteData(lazyMessageHandler);
+
+    const livechatMessageHandler = new lambda.Function(
+      this,
+      "livechatMessageHandler",
+      {
+        runtime: lambda.Runtime.NODEJS_16_X,
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, "../.layers/sqs-livechat-fetch")
+        ),
+        handler: "index.handler",
+        timeout: cdk.Duration.seconds(5),
+        memorySize: 128,
+        environment: {
+          MINIMUM_LOG_LEVEL: "INFO",
+          LIVECHAT_MESSAGE_TOPIC_ARN: liveMessageTopic.topicArn,
+          TABLE_NAME_SESSION: sessionsTable.tableName,
+          TABLE_NAME_SOCKET_CONNECTIONS: socketConnectionTable.tableName,
+          TABLE_NAME_LIVECHAT_MESSAGES: livechatMessagesTable.tableName,
+          ...env,
+        },
+        events: [
+          new eventSources.SqsEventSource(liveMessageQueue, {
+            batchSize: 3,
+          }),
+        ],
+      }
+    );
+    livechatMessagesTable.grantReadWriteData(livechatMessageHandler);
+    sessionsTable.grantReadWriteData(livechatMessageHandler);
+    socketConnectionTable.grantReadWriteData(livechatMessageHandler);
+    liveMessageTopic.grantPublish(livechatMessageHandler);
 
     const websocketConnectHandler = new lambda.Function(this, "connect", {
       runtime: lambda.Runtime.NODEJS_16_X,
@@ -113,14 +159,12 @@ export class FunctionStack extends cdk.Stack {
         MINIMUM_LOG_LEVEL: "INFO",
         TABLE_NAME_SESSION: sessionsTable.tableName,
         TABLE_NAME_SOCKET_CONNECTIONS: socketConnectionTable.tableName,
-        LIVECHAT_MESSAGE_TOPIC_ARN: liveMessageTopic.topicArn,
         LAZY_MESSAGE_TOPIC_ARN: lazyMessageTopic.topicArn,
         ...env,
       },
     });
     socketConnectionTable.grantReadWriteData(websocketConnectHandler);
     sessionsTable.grantReadData(websocketConnectHandler);
-    lazyMessageTopic.grantPublish(websocketConnectHandler);
 
     const websocketDisconnectHandler = new lambda.Function(this, "disconnect", {
       runtime: lambda.Runtime.NODEJS_14_X,
@@ -158,6 +202,7 @@ export class FunctionStack extends cdk.Stack {
       },
     });
     socketConnectionTable.grantReadWriteData(websocketMessageHandler);
+    livechatMessagesTable.grantReadData(websocketConnectHandler);
     sessionsTable.grantReadData(websocketMessageHandler);
     liveMessageTopic.grantPublish(websocketMessageHandler);
 
@@ -227,15 +272,15 @@ export class FunctionStack extends cdk.Stack {
     webSocketStage.grantManagementApiAccess(lazyMessageHandler);
     webSocketStage.grantManagementApiAccess(websocketMessageHandler);
 
-    // if (domainName && hostedZone && certificate) {
-    //   new apigwv2.ApiMapping(this, "ApiMapping", {
-    //     api: webSocketApi,
-    //     domainName: new apigwv2.DomainName(this, "DomainName", {
-    //       domainName,
-    //       certificate,
-    //     }),
-    //   });
-    // }
+    if (domainName && hostedZone && certificate) {
+      new apigwv2.ApiMapping(this, "ApiMapping", {
+        api: webSocketApi,
+        domainName: new apigwv2.DomainName(this, "DomainName", {
+          domainName,
+          certificate,
+        }),
+      });
+    }
     new cdk.CfnOutput(this, "WebSocketApi", {
       value: webSocketApi.apiEndpoint,
       description: "Websocket API URL",

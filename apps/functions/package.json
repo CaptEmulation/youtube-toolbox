@@ -5,8 +5,9 @@
   "author": "John Dean <john.holmes.dean@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn sqs-lazy-message:build && yarn websocket-connect:build && yarn websocket-disconnect:build && yarn websocket-message:build",
+    "build": "yarn sqs-lazy-message:build && yarn sqs-livechat-fetch:build && yarn websocket-connect:build && yarn websocket-disconnect:build && yarn websocket-message:build",
     "sqs-lazy-message:build": "esbuild src/lambda/sqs-lazy-message.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/sqs-lazy-message/index.js",
+    "sqs-livechat-fetch:build": "esbuild src/lambda/sqs-livechat-fetch.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/sqs-livechat-fetch/index.js",
     "websocket-connect:build": "esbuild src/lambda/websocket-connect.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/websocket-connect/index.js",
     "websocket-disconnect:build": "esbuild src/lambda/websocket-disconnect.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/websocket-disconnect/index.js",
     "websocket-message:build": "esbuild src/lambda/websocket-message.ts --bundle --platform=node --target=node16.48 --outfile=../../deploy/.layers/websocket-message/index.js",

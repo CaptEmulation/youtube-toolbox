@@ -168,7 +168,7 @@ export type TLivechatOpenAction = ISocketMessagePayload<"livechatOpen", string>;
 export type TLivechatNewMessagesAction = ISocketMessagePayload<
   "livechatNewMessages",
   youtube_v3.Schema$LiveChatMessage[]
->;
+> & { nextPage?: string | null };
 export type TErrorAction = ISocketMessagePayload<"error", { message: string }>;
 export type TPongAction = ISocketMessage<"pong">;
 

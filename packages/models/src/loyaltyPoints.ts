@@ -30,18 +30,24 @@ export interface ILoyaltyPoints {
 }
 
 const POINT_INCREMENTOR = 10;
-const ONE_MINUTE_MS = 60 * 1000;
+const ONE_MINUTE_SECONDS = 60;
 const PointCooldownMap: Record<
   TLoyaltyPointTypesNoTotal,
   { cooldown: number; multiplier: number }
 > = {
-  [ELoyaltyPointTypes.CHAT]: { cooldown: ONE_MINUTE_MS, multiplier: 1 },
-  [ELoyaltyPointTypes.MEMBERSHIP]: { cooldown: ONE_MINUTE_MS, multiplier: 10 },
+  [ELoyaltyPointTypes.CHAT]: { cooldown: ONE_MINUTE_SECONDS, multiplier: 1 },
+  [ELoyaltyPointTypes.MEMBERSHIP]: {
+    cooldown: ONE_MINUTE_SECONDS,
+    multiplier: 10,
+  },
   [ELoyaltyPointTypes.GIFTED_MEMBERSHIP]: {
-    cooldown: ONE_MINUTE_MS,
+    cooldown: ONE_MINUTE_SECONDS,
     multiplier: 20,
   },
-  [ELoyaltyPointTypes.SUPERCHAT]: { cooldown: ONE_MINUTE_MS, multiplier: 5 },
+  [ELoyaltyPointTypes.SUPERCHAT]: {
+    cooldown: ONE_MINUTE_SECONDS,
+    multiplier: 5,
+  },
 };
 
 export class LoyaltyPointsModel {
@@ -69,13 +75,13 @@ export class LoyaltyPointsModel {
     return new LoyaltyPointsModel({
       channelId: this.channelId,
       recipientId: this.recipientId,
-      points:
-        this.points + POINT_INCREMENTOR * PointCooldownMap[type].multiplier,
+      points: this.points,
       cooldowns: {
         ...this.cooldowns,
-        [type]: Date.now() + PointCooldownMap[type].cooldown,
+        [type]: Math.floor(Date.now() / 1000) + PointCooldownMap[type].cooldown,
       },
       dirtyTypes: [...(this.dirtyTypes ? this.dirtyTypes : []), type],
+      deltaPoints: POINT_INCREMENTOR * PointCooldownMap[type].multiplier,
     });
   }
 }

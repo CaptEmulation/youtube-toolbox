@@ -7,7 +7,7 @@ const tables = [
      *
      *  Description: Holds information about open socket connections
      * 
-     *   pk                 sk                 expires  Token...        MessageEndpoint  
+     *   pk                 sk                        expires  Token...        MessageEndpoint  
      *  +------------------+-------------------------+--------+---------------+----------------+
      *  |                  | MESSAGE_ENDPOINT#id     | 111111 | .........     | .............. |
      *  | CONNECTION_ID#id | LIVECHAT_ID#id          | 111111 | .........     | .............. |
@@ -53,12 +53,21 @@ const tables = [
      *
      * Description: Used to retrieve stale message for example when re-connecting
      *
-     *  pk                 sk                 expires  Message
-     * +------------------+------------------+--------+---------------+
-     * |                  | NEXT_PAGE#id     | 111111 | .........     |
-     * | LIVECHAT_ID#id   | NEXT_PAGE#id     | 111111 | .........     |
-     * |                  | NEXT_PAGE#id     | 111111 | .........     |
-     * +------------------+------------------+--------+---------------+
+     *  pk                 sk                 expires  Message         tipNextPage
+     * +------------------+------------------+--------+---------------+-----------+
+     * | LIVECHAT_ID#id   | LIVECHAT_ID#id   |        |               | 123       |
+     * +------------------+------------------+--------+---------------+-----------+
+     * |                  | NEXT_PAGE#id     | 111111 | .........     |           |
+     * | LIVECHAT_ID#id   | NEXT_PAGE#id     | 111111 | .........     |           |
+     * |                  | NEXT_PAGE#id     | 111111 | .........     |           |
+     * +------------------+------------------+--------+---------------+-----------+
+     * 
+     * Local Secondary Index 1:
+     *  pk                      LSI1SK             
+     * +-----------------------+------------------+
+     * | LIVECHAT_ID#id        | createdAt        |
+     * +-----------------------+------------------+
+     *  
      */
     TableName: `LiveChatMessages`,
     KeySchema: [{

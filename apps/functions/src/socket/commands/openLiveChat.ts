@@ -1,4 +1,8 @@
-import { getDb, SocketConnectionsDao } from "@youtube-toolbox/backend";
+import {
+  getDb,
+  LivechatMessagesDao,
+  SocketConnectionsDao,
+} from "@youtube-toolbox/backend";
 import {
   SocketConnectionModel,
   TAllOutgoingActions,
@@ -14,6 +18,7 @@ const logger = createLogger({
 
 const db = getDb();
 const socketConnectionsDao = new SocketConnectionsDao(db);
+const livechatMessagesDao = new LivechatMessagesDao(db);
 
 export async function openLiveChat(
   socketConnection: SocketConnectionModel,
@@ -35,6 +40,17 @@ export async function openLiveChat(
     livechatId,
   });
 
+  // Check if there is already a stream....
+  const tipNextPage = await livechatMessagesDao.getTipPageOfLivechat(
+    livechatId
+  );
+  if (tipNextPage) {
+    // There is a stream already, so with the socketConnection above, we will start receiving messages
+    return;
+  }
+
+  // no tip exists, so let's start a new one
+  await livechatMessagesDao.createOrUpdateTipPage(livechatId);
   const livechat = await requestMoreMessages({
     livechatId,
     credentials: socketConnection.googleCredentials(),
@@ -46,6 +62,14 @@ export async function openLiveChat(
     );
     return;
   }
+  // update livechat message with the nextPageToken
+  await livechatMessagesDao.createOrUpdate(
+    livechatId,
+    livechat.nextPageToken,
+    livechat.pollingIntervalMillis,
+    livechat
+  );
+
   logger.debug(`Publishing next check for livechatId: ${livechatId}`);
   await publish<IQueueNextPage>(LIVECHAT_MESSAGE_TOPIC_ARN, {
     type: "queueNextPage",

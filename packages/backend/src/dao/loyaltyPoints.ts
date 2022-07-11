@@ -25,6 +25,7 @@ interface IDB {
   points?: number;
   channelId: string;
   recipientId: string;
+  
 }
 
 function toIDB(item: Record<string, any>): IDB {

@@ -30,7 +30,7 @@ export async function message(
   body: string,
   send: (data: TAllOutgoingActions) => Promise<void>
 ): Promise<APIGatewayProxyResult> {
-  logger.info("Received action", body);
+  logger.info(`Received message from ${connectionId} with body: ${body}`);
   let socketConnection: ISocketConnection;
   try {
     const socketConnectionResponse =
@@ -39,6 +39,7 @@ export async function message(
         messageEndpoint
       );
     if (!socketConnectionResponse) {
+      logger.warn(`No socket connection found for ${connectionId}`);
       return {
         statusCode: 401,
         body: "Unauthorized",
@@ -55,6 +56,7 @@ export async function message(
   try {
     const bodyStr = body;
     if (!bodyStr) {
+      logger.warn("No body in request");
       return {
         statusCode: 400,
         body: "Bad Request",
